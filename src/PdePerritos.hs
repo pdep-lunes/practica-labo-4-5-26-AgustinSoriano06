@@ -1,6 +1,8 @@
 module Parcial where
 import Text.Show.Functions()
 
+-- DATAS
+
 data Perrito = Perrito {
     raza :: String,
     juguetesFav :: [String],
@@ -8,20 +10,43 @@ data Perrito = Perrito {
     energia :: Int
 } deriving (Show)
 
+data Actividad = Actividad {
+    ejercicio :: Perrito -> Perrito,
+    tiempoDeActividad :: Int
+} deriving (Show)
+
+data Guarderia = Guarderia {
+    nombre :: String,
+    rutina :: [Actividad]
+} deriving (Show)
+
+-- FUNCIONES USADAS POR LAS FUNCIONES PRINCIPALES
+
 modificarEnergia :: Int -> Perrito -> Perrito
 modificarEnergia energiaAAniadir unPerro = unPerro{energia = max 0 . (+ energiaAAniadir) . energia $ unPerro}
+
 calcularEnergiaParaQueSea100 :: Perrito -> Int
 calcularEnergiaParaQueSea100 unPerro = (100-) . energia $ unPerro
+
 razaExtravaganteO50OMasMinutos :: Perrito -> Bool
-razaExtravaganteO50OMasMinutos unPerro = esDeRaza "dalmata" unPerro || esDeRaza "pomerania" unPerro || tiempoMayoroIguala 50 unPerro 
+razaExtravaganteO50OMasMinutos unPerro = esDeRaza "dalmata" unPerro || esDeRaza "pomerania" unPerro || tiempoMayoroIguala 50 unPerro
+
 esDeRaza :: String -> Perrito -> Bool
 esDeRaza laRaza unPerro = (==laRaza) . raza $ unPerro
+
 tiempoMayoroIguala :: Int -> Perrito -> Bool
-tiempoMayoroIguala unosMinutos unPerro = (>= unosMinutos) . tiempoDePermanencia $ unPerro  
+tiempoMayoroIguala unosMinutos unPerro = (>= unosMinutos) . tiempoDePermanencia $ unPerro
+
 tieneMasDeXJuguetes :: Int -> Perrito -> Bool
 tieneMasDeXJuguetes unaCantidadDeJuguetes unPerro = (>unaCantidadDeJuguetes) . length . juguetesFav $ unPerro
+
 sacarPrimerJuguete :: Perrito -> Perrito
 sacarPrimerJuguete unPerro = unPerro{juguetesFav = drop 1 . juguetesFav $ unPerro}
+
+tiempoDeRutina :: [Actividad] -> Int
+tiempoDeRutina unaRutina = sum . map tiempoDeActividad $ unaRutina
+
+-- FUNCIONES PRINCIPALES
 
 jugar :: Perrito -> Perrito
 jugar unPerro = modificarEnergia (-10) unPerro
@@ -40,6 +65,14 @@ diaDeSpa unPerro
 diaDeCampo :: Perrito -> Perrito
 diaDeCampo unPerro = sacarPrimerJuguete . jugar $ unPerro
 
+puedeEstarEnGuarderia :: Perrito -> Guarderia -> Bool
+puedeEstarEnGuarderia unPerro unaGuarderia = (>(tiempoDeRutina . rutina $ unaGuarderia)) . tiempoDePermanencia $ unPerro
+
+esPerroResponsable :: Perrito -> Bool
+esPerroResponsable unPerro = (tieneMasDeXJuguetes 3) . diaDeCampo $ unPerro
+
+-- MODELOS
+
 zara :: Perrito
 zara = Perrito{
     raza = "dalmata",
@@ -47,16 +80,6 @@ zara = Perrito{
     tiempoDePermanencia = 90,
     energia = 80
 }
-
-data Actividad = Actividad {
-    ejercicio :: Perrito -> Perrito,
-    tiempoDeActividad :: Int
-} deriving (Show)
-
-data Guarderia = Guarderia {
-    nombre :: String,
-    rutina :: [Actividad]
-} deriving (Show)
 
 guarderiaPdePerritos :: Guarderia
 guarderiaPdePerritos = Guarderia{
@@ -67,12 +90,3 @@ guarderiaPdePerritos = Guarderia{
     Actividad{ejercicio = diaDeSpa, tiempoDeActividad = 120},
     Actividad{ejercicio = diaDeCampo, tiempoDeActividad = 720}]
 }
-
-puedeEstarEnGuarderia :: Perrito -> Guarderia -> Bool
-puedeEstarEnGuarderia unPerro unaGuarderia = (>(tiempoDeRutina . rutina $ unaGuarderia)) . tiempoDePermanencia $ unPerro
-
-tiempoDeRutina :: [Actividad] -> Int
-tiempoDeRutina unaRutina = sum . map tiempoDeActividad $ unaRutina
-
-esPerroResponsable :: Perrito -> Bool
-esPerroResponsable unPerro = (tieneMasDeXJuguetes 3) . diaDeCampo $ unPerro
